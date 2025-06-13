@@ -8,16 +8,16 @@
 
   let forms = document.querySelectorAll('.php-email-form');
 
-  forms.forEach( function(e) {
-    e.addEventListener('submit', function(event) {
+  forms.forEach(function (e) {
+    e.addEventListener('submit', function (event) {
       event.preventDefault();
 
       let thisForm = this;
 
       let action = thisForm.getAttribute('action');
       let recaptcha = thisForm.getAttribute('data-recaptcha-site-key');
-      
-      if( ! action ) {
+
+      if (!action) {
         displayError(thisForm, 'The form action property is not set!');
         return;
       }
@@ -25,18 +25,18 @@
       thisForm.querySelector('.error-message').classList.remove('d-block');
       thisForm.querySelector('.sent-message').classList.remove('d-block');
 
-      let formData = new FormData( thisForm );
+      let formData = new FormData(thisForm);
 
-      if ( recaptcha ) {
-        if(typeof grecaptcha !== "undefined" ) {
-          grecaptcha.ready(function() {
+      if (recaptcha) {
+        if (typeof grecaptcha !== "undefined") {
+          grecaptcha.ready(function () {
             try {
-              grecaptcha.execute(recaptcha, {action: 'php_email_form_submit'})
-              .then(token => {
-                formData.set('recaptcha-response', token);
-                php_email_form_submit(thisForm, action, formData);
-              })
-            } catch(error) {
+              grecaptcha.execute(recaptcha, { action: 'php_email_form_submit' })
+                .then(token => {
+                  formData.set('recaptcha-response', token);
+                  php_email_form_submit(thisForm, action, formData);
+                })
+            } catch (error) {
               displayError(thisForm, error);
             }
           });
@@ -53,27 +53,43 @@
     fetch(action, {
       method: 'POST',
       body: formData,
-      headers: {'X-Requested-With': 'XMLHttpRequest'}
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(response => {
-      if( response.ok ) {
-        return response.text();
-      } else {
-        throw new Error(`${response.status} ${response.statusText} ${response.url}`); 
-      }
-    })
-    .then(data => {
-      thisForm.querySelector('.loading').classList.remove('d-block');
-      if (data.trim() == 'OK') {
-        thisForm.querySelector('.sent-message').classList.add('d-block');
-        thisForm.reset(); 
-      } else {
-        throw new Error(data ? data : 'Form submission failed and no error message returned from: ' + action); 
-      }
-    })
-    .catch((error) => {
-      displayError(thisForm, error);
-    });
+      .then(response => {
+        if (response.ok) {
+          // Încercăm să parsăm JSON-ul
+          return response.text().then(text => {
+            try {
+              let json = JSON.parse(text);
+              return json;
+            } catch (e) {
+              // Dacă nu e JSON, returnăm textul normal
+              return text;
+            }
+          });
+        } else {
+          throw new Error(`${response.status} ${response.statusText} ${response.url}`);
+        }
+      })
+      .then(data => {
+        thisForm.querySelector('.loading').classList.remove('d-block');
+
+        if (typeof data === 'object' && data.ok) {
+          // E JSON valid și ok==true
+          thisForm.querySelector('.sent-message').classList.add('d-block');
+          thisForm.reset();
+        } else if (typeof data === 'string' && data.trim() == 'OK') {
+          // E text simplu 'OK'
+          thisForm.querySelector('.sent-message').classList.add('d-block');
+          thisForm.reset();
+        } else {
+          // Altceva — tratăm ca eroare
+          throw new Error(typeof data === 'object' ? JSON.stringify(data) : data);
+        }
+      })
+      .catch((error) => {
+        displayError(thisForm, error);
+      });
   }
 
   function displayError(thisForm, error) {
