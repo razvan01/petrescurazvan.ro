@@ -1,5 +1,5 @@
 /**
-* PHP Email Form Validation - v3.7
+* PHP Email Form Validation - v3.10
 * URL: https://bootstrapmade.com/php-email-form/
 * Author: BootstrapMade.com
 */
@@ -68,7 +68,11 @@
             }
           });
         } else {
-          throw new Error(`${response.status} ${response.statusText} ${response.url}`);
+          if (response.status === 422) {
+            throw new Error('Please verify that all fields in the form are correctly completed.');
+          } else {
+            throw new Error(`${response.status} ${response.statusText} ${response.url}`);
+          }
         }
       })
       .then(data => {
