@@ -1,0 +1,23 @@
+{
+    "name": "Petrescu Razvan-Ioan - Infrastructure Architect",
+    "short_name": "Razvan Petrescu",
+    "description": "Experienced Infrastructure Architect and Security Engineer with 15+ years in Linux, DevOps, and cybersecurity",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#149ddd",
+    "icons": [
+        {
+            "src": "assets/img/favicon.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/img/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ],
+    "lang": "en",
+    "orientation": "portrait-primary"
+}
